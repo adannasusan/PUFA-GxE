@@ -20,7 +20,7 @@ ukb_6179 = mutate(ukb_6179, Status = case_when((ukb_6179[,2] == 1) ~ "fishOil",
                                                (is.na(ukb_6179[,2])) ~ "N/A"))
 
 
-#Keep only pheno filtered participants
+#Keep only participants that passed participant QC
 filtered <- as_tibble(import("/work/kylab/adanna/dPUFAcPUFA/gwis_files/filteredPheno.tsv"))
 
 ukb_6179 <- filter(ukb_6179, (eid %in% filtered$IID))
