@@ -1,41 +1,41 @@
 library(tidyverse)
-library(rio)
-
-setwd("/work/kylab/adanna/671174")
-
-ukb = as_tibble(import("ukb671174.tsv"))
-
-#select all initial assessment columns (0.0 to 0.5)
-ukb_6179 = select(ukb, c("eid", "mineral_and_other_dietary_supplements_f6179_0_0"))
-
-#create column to label no fish oil and fish oil takers
-ukb_6179 = mutate(ukb_6179, Status = case_when((ukb_6179[,2] == 1) ~ "fishOil", 
-                                               (ukb_6179[,2] == 2) ~ "nonFishOil",
-                                               (ukb_6179[,2] == 3) ~ "nonFishOil",
-                                               (ukb_6179[,2] == 4) ~ "nonFishOil",
-                                               (ukb_6179[,2] == 5) ~ "nonFishOil",
-                                               (ukb_6179[,2] == 6) ~ "nonFishOil",
-                                               (ukb_6179[,2] == -7) ~ "nonFishOil",
-                                               (ukb_6179[,2] == -3) ~ "N/A",
-                                               (is.na(ukb_6179[,2])) ~ "N/A"))
+library(data.table)
 
 
-#Keep only participants that passed participant QC
-filtered <- as_tibble(import("/work/kylab/adanna/dPUFAcPUFA/gwis_files/filteredPheno.tsv"))
+ukb <- fread("/work/kylab/adanna/Aim1/673621/ukb673621.tsv", stringsAsFactors=F, data.table=F) #502,366
+sub_ukb = select(ukb, c("eid", "mineral_and_other_dietary_supplements_f6179_0_0"))
 
-ukb_6179 <- filter(ukb_6179, (eid %in% filtered$IID))
+#Create column to label no fish oil and fish oil takers
+sub_ukb = mutate(sub_ukb, Status = case_when((sub_ukb[,2] == 1) ~ "fishOil", 
+                                     (sub_ukb[,2] == 2) ~ "nonFishOil",
+                                     (sub_ukb[,2] == 3) ~ "nonFishOil",
+                                     (sub_ukb[,2] == 4) ~ "nonFishOil",
+                                     (sub_ukb[,2] == 5) ~ "nonFishOil",
+                                     (sub_ukb[,2] == 6) ~ "nonFishOil",
+                                     (sub_ukb[,2] == -7) ~ "nonFishOil",
+                                     (sub_ukb[,2] == -3) ~ "N/A",
+                                     (is.na(sub_ukb[,2])) ~ "N/A")) 
 
-#Keep only geno filtered participants
-geno <- as_tibble(read.table("/work/kylab/adanna/dPUFAcPUFA/gwis_files/chr11.sample", header = TRUE, stringsAsFactors = FALSE))
+#fishOil: 155,787; nonFishOil: 340,383; NA: 6196
 
-ukb_6179 <- filter(ukb_6179, (eid %in% geno$ID_2)) #357,327, fishOil=112,860, nonFishOil=243,321, N/A=1146
 
-#remove NAs and -3 for the first instance
-ukb_6179 = filter(ukb_6179, ukb_6179[, 'Status'] != "N/A") #356,181
+#Keep only participants that met filtering criteria
+filtered <- as_tibble(import("/work/kylab/adanna/dPUFAcPUFA/gwis_files/filteredPheno2.tsv"))
 
-ukb_6179$Status = replace(ukb_6179$Status, ukb_6179$Status == "nonFishOil", 0)
-ukb_6179$Status = replace(ukb_6179$Status, ukb_6179$Status == "fishOil", 1)
-ukb_6179$Status = as.numeric(ukb_6179$Status)
+sub_ukb <- filter(sub_ukb, (eid %in% filtered$IID)) #357,772
+
+#Keep only filtered participants that have available genotype information
+geno <- as_tibble(read.table("/work/kylab/adanna/dPUFAcPUFA/gwis_files/chr11.sample", 
+        header = TRUE, stringsAsFactors = FALSE))
+
+sub_ukb <- filter(sub_ukb, (eid %in% geno$ID_2)) #357,327
+
+#Remove individuals with missing fish oil use 
+sub_ukb = filter(sub_ukb, sub_ukb[, 'Status'] != "N/A") #356,181
+
+sub_ukb$Status = replace(sub_ukb$Status, sub_ukb$Status == "nonFishOil", 0) 
+sub_ukb$Status = replace(sub_ukb$Status, sub_ukb$Status == "fishOil", 1) 
+sub_ukb$Status = as.numeric(sub_ukb$Status)
 
 
 #Add covar and NMR data
@@ -62,54 +62,45 @@ colnames(nmr_covar) <- c("eid", "sex", "age",
                          "LA", "LA_TFAP", "PUFA", "PUFA_TFAP", "MUFA", "MUFA_TFAP",
                          "PUFA_MUFA_ratio")
 
-nmr_covar <- nmr_covar %>% mutate(age2 = age * age, .after=age) 
 nmr_covar <- nmr_covar %>% mutate(age_by_sex = age * sex, .after=age2) 
-nmr_covar <- nmr_covar %>% mutate(age2_by_sex = age2 * sex, .after=age_by_sex) 
+ 
 
-
-#merge with initial assessment
-pheno = as_tibble(merge(ukb_6179, nmr_covar, by = 'eid')) 
+#Merge with initial assessment
+pheno = as_tibble(merge(sub_ukb, nmr_covar, by = 'eid'))
 colnames(pheno)
 
+
 #Remove missing NMR
-colSums(is.na(pheno)) #for NMR: 270,470
-pheno <- drop_na(pheno, 'PUFA_MUFA_ratio') #85,711
+colSums(is.na(pheno))
 
-nrow(pheno[pheno$Status == 0, ]) #58,509
-nrow(pheno[pheno$Status == 1, ]) #27,202
-
-
-#Extract ids
-rep1_ids <- pheno[,1]
-
-write_tsv(rep1_ids, "/work/kylab/adanna/dPUFAcPUFA/gwis_files/rep1_ids.tsv", quote="none")
+pheno <- drop_na(pheno, 'w6_w3_ratio')
+pheno <- drop_na(pheno, 'PUFA_MUFA_ratio')
 
 
-#Inverse Normal Log Transformation of NMR metabolites
-phenotypes <- c("w3FA","w3FA_TFAP", "w6FA", "w6FA_TFAP", "w6_w3_ratio", "DHA","DHA_TFAP",
+#nrow(pheno[pheno$Status == 0, ]) 136,349
+#nrow(pheno[pheno$Status == 1, ]) 63,711
+
+#Rank Inverse Normal Log Transformation of NMR metabolites
+phenotypes <- c("w3FA", "w3FA_TFAP", "w6FA", "w6FA_TFAP", "w6_w3_ratio", "DHA","DHA_TFAP",
                 "LA", "LA_TFAP", "PUFA", "PUFA_TFAP", "MUFA", "MUFA_TFAP", "PUFA_MUFA_ratio")
 
 resdat_inv <- matrix(NA,nrow(pheno),length(phenotypes)) #no of phenotypes
 colnames(resdat_inv)<-paste(phenotypes, "resinv", sep="_")
+
 
 inversenormal <- function(x) { 
   # inverse normal if you have missing data 
   return(qnorm((rank(x,na.last="keep", ties.method="random")-0.5)/sum(!is.na(x)))) 
 }
 
-#for (i in 1:length(phenotypes)){
   for (x in 29:42){
     resdat_inv[,x-28] <- inversenormal(pheno[,x])
-    #resdat_inv[,x] <- pheno[,x]
   }
-#}
 
-resdat_inv<-as_tibble(as.data.frame(resdat_inv))
-resdat_inv$eid<-pheno$eid
+resdat_inv <-as_tibble(as.data.frame(resdat_inv))
+resdat_inv$eid <-pheno$eid
 
-pheno<-left_join(pheno, resdat_inv, by="eid")
+pheno <-left_join(pheno, resdat_inv, by="eid")
 
-write_tsv(pheno, "/work/kylab/adanna/dPUFAcPUFA/gwis_files/rep1_initAssessment.tsv", quote="none")
-write_csv(pheno, "/work/kylab/adanna/dPUFAcPUFA/gwis_files/rep1_initAssessment.csv", quote="none")
-
-
+write_tsv(pheno, "/work/kylab/adanna/dPUFAcPUFA/gwis_files/main_initAssessment.tsv", quote="none")
+write_csv(pheno, "/work/kylab/adanna/dPUFAcPUFA/gwis_files/main_initAssessment.csv", quote="none")
