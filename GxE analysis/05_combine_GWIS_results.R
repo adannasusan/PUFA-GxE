@@ -9,7 +9,7 @@ phenotype = c("w3FA_resinv", "w3FA_TFAP_resinv", "w6FA_resinv", "w6FA_TFAP_resin
 exposure = "fishOil"
 for (pheno in phenotype) {
 
-setwd(paste("/work/kylab/adanna/Aim1/main/", pheno, "/", sep = ""))
+setwd(paste("/path/to/GWIS/output/", pheno, "/", sep = ""))
 start = as_tibble(import(paste(pheno, "x", exposure, "-chr", "1", ".txt", sep = "")))
 
 for (i in 2:22) {
@@ -17,9 +17,7 @@ for (i in 2:22) {
         start = rbind(start, add)
 }
 
-#export(start, paste(pheno, exposure, "ALL", ".txt", sep = ""))
-#write.table(start, paste(pheno, exposure, "ALL", ".txt", sep = ""), row.names = FALSE, quote = FALSE)
-write_tsv(start, paste("/work/kylab/adanna/Aim1/main/mainCombineALL/", pheno, exposure, "ALL", ".txt", sep = ""), 
+write_tsv(start, paste("path/to/combined/files/output/", pheno, exposure, "ALL", ".txt", sep = ""), 
         quote="none")
 print(paste("Done with: ", pheno, " x ", exposure, sep=""))
 }
