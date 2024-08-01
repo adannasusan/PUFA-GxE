@@ -7,7 +7,7 @@ mkdir -p $outdir
 
 phenotypes=("w3FA_resinv" "w3FA_TFAP_resinv" "w6FA_resinv" "w6FA_TFAP_resinv" "w6_w3_ratio_resinv" "DHA_resinv"
             "DHA_TFAP_resinv" "LA_resinv" "LA_TFAP_resinv" "PUFA_resinv" "PUFA_TFAP_resinv" "MUFA_resinv" "MUFA_TFAP_resinv"  
-						"PUFA_MUFA_ratio_resinv")
+					  "PUFA_MUFA_ratio_resinv") #rank-inverse normal transformed phenotypes
 
 for j in ${phenotypes[@]} 
         do
