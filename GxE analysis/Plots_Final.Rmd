@@ -9,127 +9,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Effect Size Plots
-```{r}
-# Omega-3 %
-calculate_ci_lower <- function(point_estimate, standard_error) {
-  z_value <- qnorm(0.975)  # 0.975 gives the upper 2.5% quantile for a symmetric interval
-  
-  lower_bound <- point_estimate - z_value * standard_error
-  
-  return(lower_bound)
-}
-
-calculate_ci_upper <- function(point_estimate, standard_error) {
-  z_value <- qnorm(0.975)  # 0.975 gives the upper 2.5% quantile for a symmetric interval
-  
-  upper_bound <- point_estimate + z_value * standard_error
-  
-  return(upper_bound)
-}
-
-fish <- fread("fish_oil_w3FA_TFAP_chr11_plink2.w3FA_TFAP_resinv.glm.linear", data.table = F, stringsAsFactors = F)
-fish <- filter(fish, ID == 'rs35473591')
-
-no_fish <- fread("no_fish_oil_w3FA_TFAP_chr11_plink2.w3FA_TFAP_resinv.glm.linear", data.table = F, stringsAsFactors = F)
-no_fish <- filter(no_fish, ID == 'rs35473591')
-
-effect_df <- data.frame(
-  Beta = c(fish$BETA, no_fish$BETA),
-  SE = c(fish$SE, no_fish$SE),
-  Status = c("Takes fish oil", "Does not take fish oil")
-)
-
-effect_df$Lower = calculate_ci_lower(effect_df$Beta, effect_df$SE)
-effect_df$Upper = calculate_ci_upper(effect_df$Beta, effect_df$SE)
-
-p <- ggplot(effect_df, aes(Status, Beta, colour = Status)) +
-  theme_linedraw() +
-  geom_pointrange(aes(ymin = Lower, ymax = Upper)) +
-  labs(x = NULL,y = expression(paste(beta, " of rs35473591 (C allele) in omega-3 percentage")),
-       color = "Fish oil intake") +
-  scale_colour_manual(values = c("Takes fish oil" = "#00BA38", "Does not take fish oil" = "#F8766D")) +
-  scale_x_discrete(labels = NULL) +
-  theme(axis.text = element_text(size = unit(8, "points"))) +
-  theme(text = element_text(family = "Times New Roman"))
-
-#Version without labels
-p <- ggplot(effect_df, aes(Status, Beta, colour = Status)) +
-  theme_linedraw() +
-  geom_pointrange(aes(ymin = Lower, ymax = Upper)) +
-  labs(x = NULL,y = NULL) +
-  scale_colour_manual(values = c("Takes fish oil" = "#00BA38", "Does not take fish oil" = "#F8766D")) +
-  scale_x_discrete(labels = NULL) +
-  theme(axis.text = element_text(size = unit(8, "points"))) +
-  theme(text = element_text(family = "Arial")) +
-  theme(legend.position = "none")
-  
-  
-print(p)
-
-ggsave("omega3 percent beta plot log.png", p, width = 2, height = , units = "in")
-
-
-
-# Omega-6 0mega-3 ratio
-calculate_ci_lower <- function(point_estimate, standard_error) {
-  z_value <- qnorm(0.975)  # 0.975 gives the upper 2.5% quantile for a symmetric interval
-  
-  lower_bound <- point_estimate - z_value * standard_error
-  
-  return(lower_bound)
-}
-
-calculate_ci_upper <- function(point_estimate, standard_error) {
-  z_value <- qnorm(0.975)  # 0.975 gives the upper 2.5% quantile for a symmetric interval
-  
-  upper_bound <- point_estimate + z_value * standard_error
-  
-  return(upper_bound)
-}
-
-fish <- fread("fish_oil_w6_w3_ratio_resinv_chr11.txt.qassoc", data.table = F, stringsAsFactors = F)
-fish <- filter(fish, SNP == 'rs35473591')
-
-no_fish <- fread("no_fish_oil_w6_w3_ratio_resinv_chr11.txt.qassoc", data.table = F, stringsAsFactors = F)
-no_fish <- filter(no_fish, SNP == 'rs35473591')
-
-effect_df <- data.frame(
-  Beta = c(fish$BETA, no_fish$BETA),
-  SE = c(fish$SE, no_fish$SE),
-  Status = c("Takes fish oil", "Does not take fish oil")
-)
-
-effect_df$Lower = calculate_ci_lower(effect_df$Beta, effect_df$SE)
-effect_df$Upper = calculate_ci_upper(effect_df$Beta, effect_df$SE)
-
-p <- ggplot(effect_df, aes(Status, Beta, colour = Status)) +
-  theme_linedraw() +
-  geom_pointrange(aes(ymin = Lower, ymax = Upper)) +
-  labs(x = NULL,y = expression(paste(beta, " of rs35473591 in omega-6 to omega-3 ratio")),
-       color = "Fish oil intake") +
-  scale_colour_manual(values = c("Takes fish oil" = "#00BA38", "Does not take fish oil" = "#F8766D")) +
-  theme(axis.text = element_text(size = unit(9, "inches")))
-  
-#without labels
-  p <- ggplot(effect_df, aes(Status, Beta, colour = Status)) +
-  theme_linedraw() +
-  geom_pointrange(aes(ymin = Lower, ymax = Upper)) +
-  labs(x = NULL,y = NULL) +
-  scale_colour_manual(values = c("Takes fish oil" = "#00BA38", "Does not take fish oil" = "#F8766D")) +
-  theme(axis.text = element_text(size = unit(, "inches"))) +
-  theme(legend.position = "none")
-    
-print(p)
-
-ggsave("ratio beta plot.png", p, width = 5, height = 5, units = "in")
-```
-
 ## Effect size by genotype plots, omega-3 %
 ```{r}
 
 calculate_ci_lower <- function(point_estimate, standard_error) {
-  z_value <- qnorm(0.975)  # 0.975 gives the upper 2.5% quantile for a symmetric interval
+  z_value <- qnorm(0.975)  
   
   lower_bound <- point_estimate - z_value * standard_error
   
@@ -137,33 +21,25 @@ calculate_ci_lower <- function(point_estimate, standard_error) {
 }
 
 calculate_ci_upper <- function(point_estimate, standard_error) {
-  z_value <- qnorm(0.975)  # 0.975 gives the upper 2.5% quantile for a symmetric interval
+  z_value <- qnorm(0.975) 
   
   upper_bound <- point_estimate + z_value * standard_error
   
   return(upper_bound)
 }
 
-pheno <- as_tibble(import("main_initAssessment.tsv"))
+pheno <- as_tibble(import("/path/to/file/containing/phenotype/data"))
 pheno <- pheno %>% select(c('IID', 'Status', 'w3FA_TFAP_resinv', 'age', 'sex', 'age_by_sex', paste0('PCA', 1:10)))
 
-geno <- as_tibble(read_delim("DHA_chr11.raw"))
+geno <- as_tibble(read_delim("/path/to/file/containing/all/particpants/genotype/data/for/the/top/SNP"))
 
 geno$rs35473591_CT <- round(geno$rs35473591_CT, digits = 0)
-
-#geno <- geno %>% 
- # mutate(Genotype = case_when(
-  #  rs35473591_CT == 2 ~ 'C/C',
-   # rs35473591_CT == 1 ~ 'C/CT',
-    #rs35473591_CT == 0 ~ 'CT/CT')) %>% 
 
 geno <- dplyr::select(geno, c('IID', 'rs35473591_CT'))
 
 pheno <- left_join(pheno, geno, by = 'IID', keep=F)
 
 pheno <- dplyr::select(pheno,-IID)
-
-#pheno <- mutate(pheno, gene_by_status = rs35473591_CT * Status)
 
 
 CC_group <- pheno %>% dplyr::filter(rs35473591_CT == 2) 
@@ -203,17 +79,6 @@ for (i in seq_along(subgroups)) {
 final_df$Lower = calculate_ci_lower(final_df$Beta, final_df$SE)
 final_df$Upper = calculate_ci_upper(final_df$Beta, final_df$SE)
 
-p <- ggplot(final_df, aes(x = factor(rs35473591_CT), y = Beta, colour = factor(rs35473591_CT))) +
-  theme_linedraw() +
-  geom_pointrange(aes(ymin = Lower, ymax = Upper)) +
-  labs(x = NULL,y = expression(paste(beta, " of fish oil supplementaion on omega-3 percentage")),
-       color = "Genotype") +
-  scale_colour_manual(values = c("0" = "darkorange", "1" = "indianred3", "2"= "#3399CC"),
-                      labels = c("0" = "CT/CT", "1" = "C/CT", "2" = "CC")) +
-  #scale_x_discrete(labels = c("0" = "CT/CT", "1" = "C/CT", "2" = "CC")) +
-  scale_x_discrete(labels = NULL) +
-  theme(axis.text = element_text(size = unit(8, "points"))) +
-  theme(text = element_text(family = "Arial")) 
 
 p <- ggplot(final_df, aes(x = factor(rs35473591_CT), y = Beta, colour = factor(rs35473591_CT))) +
   theme_linedraw() +
@@ -231,153 +96,5 @@ p <- ggplot(final_df, aes(x = factor(rs35473591_CT), y = Beta, colour = factor(r
 print(p)
 
 ggsave("genotype beta plot log.png", p, width = 3, height = 2, units = "in")
-```
-
-
-```{r}
-pheno <- as_tibble(import("main_initAssessment.tsv"))
-
-
-#pheno <- pheno %>% select(c('eid', 'Status', 'DHA'))
-#pheno <- pheno %>% select(c('IID', 'Status', 'w6_w3_ratio'))
-
-pheno <- pheno %>% select(c('IID', 'Status', 'w3FA_TFAP'))
-
-alleles <- pheno
-
-#alleledir <- "/scratch/sai55200/alleles/"
-#pgendir <- "/scratch/sai55200/pgen/"
-chrs <- 11
-
-
-#geno <- as_tibble(read_delim(paste(alleledir, "DHA_chr11.raw", sep="")))
-geno <- as_tibble(read_delim("DHA_chr11.raw"))
-geno <- geno %>% select(IID, starts_with("rs"), contains(":"))
-alleles <- left_join(alleles, geno)
-
-#Check major and minor alleles
-rsIDs <- 'rs35473591'
-SNPs <- as_tibble(matrix(ncol = 5))
-names(SNPs) <- c("#CHROM", "POS", "ID", "REF", "ALT")
-#rs <- as_tibble(read_delim(paste(pgendir, "chr11.pvar", sep = "")))
-rs <- as_tibble(read_delim("ukb_imp_chr11.pvar"))
-SNPs <- rbind(SNPs, rs[rs$ID %in% rsIDs, ])
-
-SNPs <- SNPs[-1, ]
-SNPs
-
-# A tibble: 1 × 5
-#CHROM`      POS ID       REF   ALT  
-#<dbl>    <dbl> <chr>    <chr> <chr>
-#   11 61586328 rs35473591 CT     C  
-
-
-#majorallele_minorallele(rename column(s) with SNPS as column names to reflect major and minor alleles)
-names(alleles)[ncol(alleles)] <- "rs35473591_CT_C"
-
-#---------------------------------------------------------------------------------------------------------------------------------------
-#Complete cases
-#colSums(is.na(df))
-alleles <- alleles[complete.cases(alleles$w3FA_TFAP), ]
-alleles <- alleles[complete.cases(alleles$rs35473591_CT_C), ]
-
-#alleles %>% select(Status) %>% table(useNA="always")
-#Status
-#0     1  <NA> 
-#  136349  63711      0  
-
-#write.table(alleles, file = paste("/scratch/sai55200/alleles/PhenoGeno.txt", sep = ""),
-#            sep = "\t", row.names = FALSE, quote = FALSE)
-
-
-alleles2 <- alleles
-  
-#Range for all SNPs is 0 to 2
-alleles2$rs35473591_CT_C = round(alleles2$rs35473591_CT_C, digits = 0)
-  
-#Get minor allele %
-test <- alleles2 %>% select(starts_with("rs"))
-  
-  for (i in 1:ncol(test)) {
-    print(names(test)[i])
-    print(table(test[, i]))
-    print(round((sum(test[, i]) / (nrow(test) * 2)), digits = 4))
-  }
-
-#[1] "rs35473591_CT_C"
-#rs35473591_CT_C
-#0     1     2 
-#85684 90563 23813 
-#[1] 0.3454
-
-
-  
-alleles3 <- alleles2 %>% mutate(rs35473591_CT_C = ifelse(rs35473591_CT_C == 0, "CT/CT", ifelse(rs35473591_CT_C == 2, "CC", "CT/C")))
-  
-alleles3 %>% select(rs35473591_CT_C) %>% table()
-#rs35473591_CT_C
-#C/C  C/CT CT/CT 
-#85684 90563 23813 
-  
- # write.table(alleles3, file = paste("/scratch/sai55200/alleles/PhenoGeno2.txt", sep = ""),
-              #sep = "\t", row.names = FALSE, quote = FALSE)
-
-
-#alleles$Final_Status = replace(alleles3$Final_Status, alleles3$Final_Status == 0, "nonFishOil")
-#alleles$Final_Status = replace(alleles3$Final_Status, alleles3$Final_Status == 1, "fishOil")
-
-#alleles3 <- as_tibble(read.table("/scratch/sai55200/alleles/PhenoGeno2.txt", 
- #                                header = TRUE, stringsAsFactors = FALSE))
-
-x <- c("Status", "w3FA_TFAP", "mmol ratio", "rs35473591", "Omega-3 Percentage")
-
-x <- matrix(x, ncol = 5, byrow = TRUE)
-
-stderror <- function(x) sd(x)/sqrt(length(x))
-
-alleles3$'Status' <- factor(alleles3$'Status', c("0", "1"))
-
-
-#Remove outlier
-alleles3 <- alleles3 %>% filter(w3FA_TFAP < 90)
-
-for (i in 1:nrow(x)) {
-  print(x[i, ])
-  phenoavg <- alleles3 %>% select(contains(x[i, ]))
-  colnames(phenoavg) <- c("Exposure", "Phenotype", "Genotype")
-  print(phenoavg)
-
-  genofreq <- data.frame(table(phenoavg$Genotype))
-  xlabs <- paste(genofreq$Var1, "\n(n=", genofreq$Freq, ")", sep = "")
-  #should these be split by exposure too
-
-  phenoavg <- phenoavg %>% filter(!is.na(Exposure)) %>% group_by(Exposure, Genotype) %>% summarise_at(vars(Phenotype), list(Mean = mean, StdE = stderror))
-  phenoavg <- phenoavg %>% mutate(PhenoMax = Mean + StdE, PhenoMin = Mean - StdE)
-  print(phenoavg)
-
-  Expose <- x[i, 1]
-
-  avgplot <- ggplot(phenoavg) + 
-    geom_bar(aes(x = Genotype, y = Mean, fill = factor(Exposure)), color = "black", stat = "identity", position = position_dodge(), alpha = 0.7) +
-    geom_errorbar(aes(x = Genotype, ymin = PhenoMin, ymax = PhenoMax, fill = Exposure), colour = "black", width = 0.3, 
-                  position = position_dodge(0.9), stat = "identity") + 
-    scale_fill_manual(name = "Fish oil intake", labels = c("Does not take fish oil", "Takes fish oil"), values = c("#F8766D", "#00BA38")) +
-    labs(
-         x = "rs35473591 genotype",
-         y = "Omega-3 percentage",
-         fill = paste(Expose, "Exposure")) + 
-    scale_x_discrete(labels = xlabs) + 
-    #coord_cartesian(ylim = c(min(phenoavg$PhenoMin), max(phenoavg$PhenoMax) + 0.5)) +
-    ylim(0, 6) +
-    theme_classic() +
-    theme(axis.text = element_text(size = unit(9, "inches")))
-  
-  #png(filename = paste(alleledir, "alleleplots/", x[i, 2], "x", x[i, 1], "-", x[i, 4], "main_avgplot.png", sep = ""), type = "cairo", width = 1500, height = 750, res = 100)
-  print(avgplot)
-  dev.off()
-}
-
-print(avgplot)
-ggsave("omega-3 average plot raw.png", avgplot, width = 5, height = 5, units = "in")
 
 ```
