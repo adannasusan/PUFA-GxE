@@ -1,6 +1,6 @@
 ml GEM/1.5.1-foss-2022a
 
-genodir=("/path/to/genotype/files")
+genodir=("/path/to/genotype/files/in/bgen/format")
 pheno=("/path/to/file/containing/ids/phenotypes/exposure/covariates")
 outdir=("/path/to/output/directory")
 mkdir -p $outdir
