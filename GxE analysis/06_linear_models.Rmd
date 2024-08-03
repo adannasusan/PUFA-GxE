@@ -95,6 +95,6 @@ p <- ggplot(final_df, aes(x = factor(rs35473591_CT), y = Beta, colour = factor(r
   
 print(p)
 
-ggsave("genotype beta plot log.png", p, width = 3, height = 2, units = "in")
+ggsave("/path/to/output.png", p, width = 3, height = 2, units = "in")
 
 ```
